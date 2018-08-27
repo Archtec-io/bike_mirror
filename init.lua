@@ -39,7 +39,7 @@ local bike = {
 	collisionbox = {-0.5, -0.5, -0.5, 0.5, 1.0, 0.5},
 	visual = "mesh",
 	mesh = "bike_bike.obj",
-	textures = {"default_wood.png"},
+	textures = {"bike_bike.png"},
 	stepheight = 0.6,
 
 	driver = nil,
@@ -61,7 +61,7 @@ function bike.on_rightclick(self, clicker)
 		self.driver = nil
 		clicker:set_detach()
 		default.player_attached[name] = false
-		default.player_set_animation(clicker, "stand" , 30)
+		--default.player_set_animation(clicker, "stand" , 30)
 		local pos = clicker:getpos()
 		pos = {x = pos.x, y = pos.y + 0.2, z = pos.z}
 		minetest.after(0.1, function()
@@ -78,11 +78,11 @@ function bike.on_rightclick(self, clicker)
 		end
 		self.driver = clicker
 		clicker:set_attach(self.object, "",
-			{x = 0, y = 11, z = -3}, {x = 0, y = 0, z = 0})
+			{x = 0, y = 3, z = -3}, {x = 0, y = 0, z = 0})
 		default.player_attached[name] = true
-		minetest.after(0.2, function()
+		--[[minetest.after(0.2, function()
 			default.player_set_animation(clicker, "sit" , 30)
-		end)
+		end)--]]
 		clicker:set_look_horizontal(self.object:getyaw())
 	end
 end
@@ -191,8 +191,8 @@ minetest.register_entity("bike:bike", bike)
 minetest.register_craftitem("bike:bike", {
 	description = "bike",
 	inventory_image = "bike_inventory.png",
-	wield_image = "bike_wield.png",
-	wield_scale = {x = 2, y = 2, z = 1},
+	--wield_image = "bike_wield.png",
+	wield_scale = {x = 3, y = 3, z = 2},
 	liquids_pointable = true,
 	groups = {flammable = 2},
 
