@@ -36,7 +36,7 @@ local bike = {
 	physical = true,
 	-- Warning: Do not change the position of the collisionbox top surface,
 	-- lowering it causes the bike to fall through the world if underwater
-	collisionbox = {-0.5, -0.35, -0.5, 0.5, 0.3, 0.5},
+	collisionbox = {-0.5, -0.5, -0.5, 0.5, 1.0, 0.5},
 	visual = "mesh",
 	mesh = "bike_bike.obj",
 	textures = {"default_wood.png"},
