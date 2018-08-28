@@ -43,11 +43,28 @@ local bike = {
 	stepheight = 0.6,
 
 	driver = nil,
+	old_driver = nil,
 	v = 0,
 	last_v = 0,
 	removed = false
 }
 
+local function dismount_player(bike)
+	local name = bike.driver:get_player_name()
+	bike.object:set_velocity({x = 0, y = 0, z = 0})
+	bike.v = 0
+
+	bike.old_driver = bike.driver
+	bike.driver = nil
+	bike.old_driver:set_detach()
+	default.player_attached[name] = false
+	--default.player_set_animation(bike.old_driver, "stand" , 30)
+	local pos = bike.old_driver:get_pos()
+	pos = {x = pos.x, y = pos.y + 0.2, z = pos.z}
+	minetest.after(0.1, function()
+		bike.old_driver:set_pos(pos)
+	end)
+end
 
 function bike.on_rightclick(self, clicker)
 	if not clicker or not clicker:is_player() then
@@ -55,18 +72,7 @@ function bike.on_rightclick(self, clicker)
 	end
 	local name = clicker:get_player_name()
 	if self.driver and clicker == self.driver then
-		self.object:set_velocity({x = 0, y = 0, z = 0})
-		self.v = 0
-
-		self.driver = nil
-		clicker:set_detach()
-		default.player_attached[name] = false
-		--default.player_set_animation(clicker, "stand" , 30)
-		local pos = clicker:get_pos()
-		pos = {x = pos.x, y = pos.y + 0.2, z = pos.z}
-		minetest.after(0.1, function()
-			clicker:set_pos(pos)
-		end)
+		dismount_player(self)
 	elseif not self.driver then
 		local attach = clicker:get_attach()
 		if attach and attach:get_luaentity() then
@@ -133,6 +139,11 @@ end
 
 
 function bike.on_step(self, dtime)
+	if self.object:get_velocity().y < -10 and self.driver ~= nil then
+		dismount_player(self)
+		return
+	end
+
 	local current_v = get_v(self.object:get_velocity()) * get_sign(self.v)
 	self.v = (current_v + self.v*3) / 4
 	if self.driver then
