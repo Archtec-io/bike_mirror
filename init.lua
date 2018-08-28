@@ -55,17 +55,17 @@ function bike.on_rightclick(self, clicker)
 	end
 	local name = clicker:get_player_name()
 	if self.driver and clicker == self.driver then
-		self.object:setvelocity({x = 0, y = 0, z = 0})
+		self.object:set_velocity({x = 0, y = 0, z = 0})
 		self.v = 0
 
 		self.driver = nil
 		clicker:set_detach()
 		default.player_attached[name] = false
 		--default.player_set_animation(clicker, "stand" , 30)
-		local pos = clicker:getpos()
+		local pos = clicker:get_pos()
 		pos = {x = pos.x, y = pos.y + 0.2, z = pos.z}
 		minetest.after(0.1, function()
-			clicker:setpos(pos)
+			clicker:set_pos(pos)
 		end)
 	elseif not self.driver then
 		local attach = clicker:get_attach()
@@ -83,13 +83,13 @@ function bike.on_rightclick(self, clicker)
 		--[[minetest.after(0.2, function()
 			default.player_set_animation(clicker, "sit" , 30)
 		end)--]]
-		clicker:set_look_horizontal(self.object:getyaw())
+		clicker:set_look_horizontal(self.object:get_yaw())
 	end
 end
 
 
 function bike.on_activate(self, staticdata, dtime_s)
-	self.object:setacceleration({x = 0, y = -9.8, z = 0})
+	self.object:set_acceleration({x = 0, y = -9.8, z = 0})
 	self.object:set_armor_groups({immortal = 1})
 	if staticdata then
 		self.v = tonumber(staticdata)
@@ -121,7 +121,7 @@ function bike.on_punch(self, puncher)
 			local leftover = inv:add_item("main", "bike:bike")
 			-- if no room in inventory add a replacement bike to the world
 			if not leftover:is_empty() then
-				minetest.add_item(self.object:getpos(), leftover)
+				minetest.add_item(self.object:get_pos(), leftover)
 			end
 		end
 		-- delay remove to ensure player is detached
@@ -135,7 +135,7 @@ end
 function bike.on_step(self, dtime)
 	if self.driver then
 		local ctrl = self.driver:get_player_control()
-		local yaw = self.object:getyaw()
+		local yaw = self.object:get_yaw()
 		if ctrl.up then
 			self.v = self.v + 0.1
 		elseif ctrl.down then
@@ -143,27 +143,27 @@ function bike.on_step(self, dtime)
 		end
 		if ctrl.left then
 			if self.v < 0 then
-				self.object:setyaw(yaw - (1 + dtime) * 0.03)
+				self.object:set_yaw(yaw - (1 + dtime) * 0.03)
 			else
-				self.object:setyaw(yaw + (1 + dtime) * 0.03)
+				self.object:set_yaw(yaw + (1 + dtime) * 0.03)
 			end
 		elseif ctrl.right then
 			if self.v < 0 then
-				self.object:setyaw(yaw + (1 + dtime) * 0.03)
+				self.object:set_yaw(yaw + (1 + dtime) * 0.03)
 			else
-				self.object:setyaw(yaw - (1 + dtime) * 0.03)
+				self.object:set_yaw(yaw - (1 + dtime) * 0.03)
 			end
 		end
 	end
-	local velo = self.object:getvelocity()
+	local velo = self.object:get_velocity()
 	if self.v == 0 and velo.x == 0 and velo.y == 0 and velo.z == 0 then
-		self.object:setpos(self.object:getpos())
+		self.object:move_to(self.object:get_pos())
 		return
 	end
 	local s = get_sign(self.v)
 	self.v = self.v - 0.004 * s
 	if s ~= get_sign(self.v) then
-		self.object:setvelocity({x = 0, y = 0, z = 0})
+		self.object:set_velocity({x = 0, y = 0, z = 0})
 		self.v = 0
 		return
 	end
@@ -173,15 +173,15 @@ function bike.on_step(self, dtime)
 		self.v = 0
 	end
 
-	local p = self.object:getpos()
+	local p = self.object:get_pos()
 	if is_water(p) then
 		self.v = self.v / 1.3
 	end
 
 	local new_velo
-	new_velo = get_velocity(self.v, self.object:getyaw(), self.object:getvelocity().y)
-	self.object:setpos(self.object:getpos())
-	self.object:setvelocity(new_velo)
+	new_velo = get_velocity(self.v, self.object:get_yaw(), self.object:get_velocity().y)
+	self.object:move_to(self.object:get_pos())
+	self.object:set_velocity(new_velo)
 end
 
 
@@ -214,7 +214,7 @@ minetest.register_craftitem("bike:bike", {
 		bike = minetest.add_entity(pointed_thing.above, "bike:bike")
 		if bike then
 			if placer then
-				bike:setyaw(placer:get_look_horizontal())
+				bike:set_yaw(placer:get_look_horizontal())
 			end
 			local player_name = placer and placer:get_player_name() or ""
 			if not (creative and creative.is_enabled_for and
