@@ -158,9 +158,11 @@ function bike.on_step(self, dtime)
 		end
 
 		if ctrl.up then
-			self.v = self.v + 0.3 * agility
+			self.v = self.v + 0.2 * agility
 		elseif ctrl.down then
-			self.v = self.v - 1.2 * agility
+			self.v = self.v - 0.5 * agility
+		else
+			self.v = self.v - 0.05 * agility
 		end
 
 		if ctrl.left then
@@ -175,7 +177,6 @@ function bike.on_step(self, dtime)
 		return
 	end
 	local s = get_sign(self.v)
-	self.v = self.v - 0.004 * s
 	if s ~= get_sign(self.v) then
 		self.object:set_velocity({x = 0, y = 0, z = 0})
 		self.v = 0
