@@ -133,26 +133,29 @@ end
 
 
 function bike.on_step(self, dtime)
+	local current_v = get_v(self.object:get_velocity()) * get_sign(self.v)
+	self.v = (current_v + self.v*3) / 4
 	if self.driver then
 		local ctrl = self.driver:get_player_control()
 		local yaw = self.object:get_yaw()
-		if ctrl.up then
-			self.v = self.v + 0.1
-		elseif ctrl.down then
-			self.v = self.v - 0.1
+		local agility = 0
+
+		if self.v > 0.4 then
+			agility = 1/math.sqrt(self.v)
+		else
+			agility = 1.58
 		end
+
+		if ctrl.up then
+			self.v = self.v + 0.3 * agility
+		elseif ctrl.down then
+			self.v = self.v - 1.2 * agility
+		end
+
 		if ctrl.left then
-			if self.v < 0 then
-				self.object:set_yaw(yaw - (1 + dtime) * 0.03)
-			else
-				self.object:set_yaw(yaw + (1 + dtime) * 0.03)
-			end
+			self.object:set_yaw(yaw + (1 + dtime) * 0.06 * agility)
 		elseif ctrl.right then
-			if self.v < 0 then
-				self.object:set_yaw(yaw + (1 + dtime) * 0.03)
-			else
-				self.object:set_yaw(yaw - (1 + dtime) * 0.03)
-			end
+			self.object:set_yaw(yaw - (1 + dtime) * 0.06 * agility)
 		end
 	end
 	local velo = self.object:get_velocity()
