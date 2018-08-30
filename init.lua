@@ -36,7 +36,7 @@ local bike = {
 	physical = true,
 	-- Warning: Do not change the position of the collisionbox top surface,
 	-- lowering it causes the bike to fall through the world if underwater
-	collisionbox = {-0.4, -0.4, -0.4, 0.4, 0.8, 0.4},
+	collisionbox = {-0.35, -0.35, -0.35, 0.35, 0.7, 0.35},
 	visual = "mesh",
 	mesh = "bike_bike.obj",
 	textures = {"bike_bike.png"},
@@ -84,7 +84,7 @@ function bike.on_rightclick(self, clicker)
 		end
 		self.driver = clicker
 		clicker:set_attach(self.object, "",
-			{x = 0, y = 1.3, z = -2.3}, {x = 0, y = 0, z = 0})
+			{x = 0, y = 1, z = -2}, {x = 0, y = 0, z = 0})
 		default.player_attached[name] = true
 		--[[minetest.after(0.2, function()
 			default.player_set_animation(clicker, "sit" , 30)
