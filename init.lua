@@ -113,6 +113,11 @@ function bike.on_punch(self, puncher)
 	if not puncher or not puncher:is_player() or self.removed then
 		return
 	end
+	local pc=puncher:get_player_control()
+	if not pc.sneak then
+		minetest.chat_send_player(puncher:get_player_name(), "Warning: Destroying the bike gives you only some resources back. If you are sure, hold sneak while destroying the bike.")
+		return
+	end
 	if self.driver and puncher == self.driver then
 		self.driver = nil
 		puncher:set_detach()
@@ -123,9 +128,9 @@ function bike.on_punch(self, puncher)
 		local inv = puncher:get_inventory()
 		if not (creative and creative.is_enabled_for
 				and creative.is_enabled_for(puncher:get_player_name()))
-				or not inv:contains_item("main", "bike:bike") then
-			local leftover = inv:add_item("main", "bike:bike")
-			-- if no room in inventory add a replacement bike to the world
+				or not inv:contains_item("main", "default:steel_ingot 6") then
+			local leftover = inv:add_item("main", "default:steel_ingot 6")
+			-- if no room in inventory add the iron to the world
 			if not leftover:is_empty() then
 				minetest.add_item(self.object:get_pos(), leftover)
 			end
