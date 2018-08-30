@@ -246,18 +246,49 @@ minetest.register_craftitem("bike:bike", {
 	end,
 })
 
+minetest.register_craftitem("bike:wheel", {
+	description = "Bike Wheel",
+	inventory_image = "bike_wheel.png",
+})
 
---[[minetest.register_craft({
-	output = "bike:bike",
+minetest.register_craftitem("bike:handles", {
+	description = "Bike Handles",
+	inventory_image = "bike_handles.png",
+})
+
+if minetest.get_modpath("technic") ~= nil then
+	minetest.register_craft({
+		output = "bike:wheel 2",
+		recipe = {
+			{"", "technic:rubber", ""},
+			{"technic:rubber", "default:steel_ingot", "technic:rubber"},
+			{"", "technic:rubber", ""},
+		},
+	})
+else
+	minetest.register_craft({
+		output = "bike:wheel 2",
+		recipe = {
+			{"", "group:wood", ""},
+			{"group:wood", "default:steel_ingot", "group:wood"},
+			{"", "group:wood", ""},
+		},
+	})
+end
+
+minetest.register_craft({
+	output = "bike:handles",
 	recipe = {
-		{"",           "",           ""          },
-		{"group:wood", "",           "group:wood"},
-		{"group:wood", "group:wood", "group:wood"},
+		{"default:steel_ingot", "default:steel_ingot", "default:steel_ingot"},
+		{"group:wood", "", "group:wood"},
 	},
 })
 
 minetest.register_craft({
-	type = "fuel",
-	recipe = "bike:bike",
-	burntime = 20,
-})--]]
+	output = "bike:bike",
+	recipe = {
+		{"bike:handles", "", "group:wood"},
+		{"default:steel_ingot", "default:steel_ingot", "default:steel_ingot"},
+		{"bike:wheel", "", "bike:wheel"},
+	},
+})
