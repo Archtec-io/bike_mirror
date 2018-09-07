@@ -8,6 +8,12 @@ local function is_water(pos)
 end
 
 
+local function is_bike_friendly(pos)
+	local nn = minetest.get_node(pos).name
+	return minetest.get_item_group(nn, "crumbly") == 0 or minetest.get_item_group(nn, "bike_friendly") ~= 0
+end
+
+
 local function get_sign(i)
 	if i == 0 then
 		return 0
@@ -196,6 +202,9 @@ function bike.on_step(self, dtime)
 	local p = self.object:get_pos()
 	if is_water(p) then
 		self.v = self.v / 1.3
+	end
+	if not is_bike_friendly({x=p.x, y=p.y-0.355, z=p.z}) then
+		self.v = self.v / 1.05
 	end
 
 	local new_velo
