@@ -403,7 +403,7 @@ function bike.on_step(self, dtime)
 	end
 
 	-- Can we ride good here?
-	if not is_bike_friendly({x=p.x, y=p.y-0.355, z=p.z}) then
+	if not is_bike_friendly({x=p.x, y=p.y + self.collisionbox[2] - 0.05, z=p.z}) then
 		self.v = self.v / 1.05
 	end
 
