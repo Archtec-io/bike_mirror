@@ -426,7 +426,6 @@ minetest.register_craftitem("bike:bike", {
 	description = "bike",
 	inventory_image = "bike_inventory.png",
 	wield_scale = {x = 3, y = 3, z = 2},
-	liquids_pointable = true,
 	groups = {flammable = 2},
 	on_place = function(itemstack, placer, pointed_thing)
 		local under = pointed_thing.under
