@@ -44,12 +44,6 @@ minetest.register_node("bike:hand", {
 	node_placement_prediction = "",
 })
 
-minetest.register_chatcommand("hand", {
-	func = function(name)
-		minetest.get_player_by_name(name):get_inventory():set_stack("hand", 1, "")
-	end
-})
-
 --
 -- bike entity
 --
