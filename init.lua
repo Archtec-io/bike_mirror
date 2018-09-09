@@ -418,6 +418,15 @@ minetest.register_on_leaveplayer(function(player)
 	attached[player:get_player_name()] = nil
 end)
 
+-- Dismount all players on server shutdown
+minetest.register_on_shutdown(function()
+	for _, e in pairs(minetest.luaentities) do
+		if (e.driver ~= nil) then				
+			dismount_player(e, true)
+		end
+	end
+end)
+
 -- Register the entity
 minetest.register_entity("bike:bike", bike)
 
