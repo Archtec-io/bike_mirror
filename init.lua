@@ -528,7 +528,7 @@ minetest.register_craftitem("bike:wheel", {
 
 minetest.register_craftitem("bike:handles", {
 	description = "Bike Handles",
-	inventory_image = "old_handles.png",
+	inventory_image = "bike_handles.png",
 })
 
 if minetest.get_modpath("technic") ~= nil then
