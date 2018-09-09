@@ -104,7 +104,7 @@ local function dismount_player(bike, exit)
 		bike.driver:set_properties({textures=bike.old_driver["textures"]})
 		bike.driver:set_eye_offset(bike.old_driver["eye_offset"].offset_first, bike.old_driver["eye_offset"].offset_third)
 		bike.driver:hud_set_flags(bike.old_driver["hud"])
-		bike.driver:get_inventory():set_stack("hand", 1, bike.old_driver["hand"])
+		bike.driver:get_inventory():set_stack("hand", 1, bike.driver:get_inventory():get_stack("bike_hand", 1))
 		-- Is the player leaving? If so, dont do this stuff or Minetest will have a fit
 		if not exit then
 			local pos = bike.driver:get_pos()
@@ -146,7 +146,7 @@ function bike.on_rightclick(self, clicker)
 		self.old_driver["textures"] = clicker:get_properties().textures
 		self.old_driver["eye_offset"] = clicker:get_eye_offset()
 		self.old_driver["hud"] = clicker:hud_get_flags()
-		self.old_driver["hand"] = clicker:get_inventory():get_stack("hand", 1)
+		clicker:get_inventory():set_stack("bike_hand", 1, clicker:get_inventory():get_stack("hand", 1))
 		-- Change the hand
 		clicker:get_inventory():set_stack("hand", 1, "bike:hand")
 		local attach = clicker:get_attach()
@@ -416,6 +416,14 @@ end
 -- Player is leaving (doesn't matter if they are on a bike or not)
 minetest.register_on_leaveplayer(function(player)
 	attached[player:get_player_name()] = nil
+end)
+
+-- Player is leaving (doesn't matter if they are on a bike or not)
+minetest.register_on_joinplayer(function(player)
+	local inv = player:get_inventory()
+	if inv:get_stack("hand", 1):get_name() == "bike:hand" then
+		inv:set_stack("hand", 1, inv:get_stack("bike_hand", 1))
+	end
 end)
 
 -- Dismount all players on server shutdown
