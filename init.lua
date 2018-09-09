@@ -1,5 +1,43 @@
 --[[ Helpers ]]--
 
+-- Skin mod detection
+local skin_mod
+
+local skin_mods = {"skinsdb", "skins", "u_skins", "simple_skins", "wardrobe"}
+
+for _, mod in pairs(skin_mods) do
+	local path = minetest.get_modpath(mod)
+	if path then
+		skin_mod = mod
+	end
+end
+
+local function get_player_skin(player)
+	local name = player:get_player_name()
+	local armor_tex = ""
+	if minetest.global_exists("armor") then
+		-- Filter out helmet (for bike helmet) and boots/shield (to not mess up UV mapping)
+		local function filter(str, find)
+			for _,f in pairs(find) do
+				str = str:gsub("%^"..f.."_(.-.png)", "")
+			end
+			return str
+		end
+		armor_tex = filter("^"..armor.textures[name].armor, {"shields_shield", "3d_armor_boots", "3d_armor_helmet"})
+	end
+	-- Return the skin with armor (if applicable)
+	if skin_mod == "skinsdb" then
+		return "[combine:64x32:0,0="..skins.get_player_skin(minetest.get_player_by_name(name))["_texture"]..armor_tex
+	elseif (skin_mod == "skins" or skin_mod == "simple_skins") and skins.skins[name] then
+		return skins.skins[name]..".png"..armor_tex
+	elseif skin_mod == "u_skins" and u_skins.u_skins[name] then
+		return u_skins.u_skins[name]..".png"..armor_tex
+	elseif skin_mod == "wardrobe" and wardrobe.playerSkins and wardrobe.playerSkins[name] then
+		return wardrobe.playerSkins[name]..armor_tex
+	end
+	return player:get_properties().textures[1]..armor_tex
+end
+
 -- Keep track of attached players (for leaveplayer)
 local attached = {}
 
@@ -36,10 +74,12 @@ end
 -- Custom hand
 minetest.register_node("bike:hand", {
 	description = "",
+	-- No interaction on a bike :)
 	range = 0,
 	on_place = function(itemstack, placer, pointed_thing)
 		return ItemStack("bike:hand "..itemstack:get_count())
 	end,
+	-- Copy default:hand looks so it doesnt look as weird when the hands are switched
 	wield_image = minetest.registered_items[""].wield_image,
 	wield_scale = minetest.registered_items[""].wield_scale,
 	node_placement_prediction = "",
@@ -101,10 +141,10 @@ local function dismount_player(bike, exit)
 		attached[bike.driver:get_player_name()] = nil
 		bike.driver:set_detach()
 		-- Reset original player properties
-		bike.driver:set_properties({textures=bike.old_driver["textures"]})
+		bike.driver:set_properties({visual_size=bike.old_driver["vsize"]})
 		bike.driver:set_eye_offset(bike.old_driver["eye_offset"].offset_first, bike.old_driver["eye_offset"].offset_third)
 		bike.driver:hud_set_flags(bike.old_driver["hud"])
-		bike.driver:get_inventory():set_stack("hand", 1, bike.driver:get_inventory():get_stack("bike_hand", 1))
+		bike.driver:get_inventory():set_stack("hand", 1, bike.driver:get_inventory():get_stack("old_hand", 1))
 		-- Is the player leaving? If so, dont do this stuff or Minetest will have a fit
 		if not exit then
 			local pos = bike.driver:get_pos()
@@ -134,7 +174,7 @@ function bike.on_rightclick(self, clicker)
 				"leather.png",
 				"metal_black.png",
 				"metal_black.png",
-				clicker:get_properties().textures[1].."^helmet.png",
+				get_player_skin(clicker).."^helmet.png",
 				"tread.png",
 				"gear.png",
 				"spokes.png",
@@ -143,10 +183,10 @@ function bike.on_rightclick(self, clicker)
 			},
 		})
 		-- Save the player's properties that we need to change
-		self.old_driver["textures"] = clicker:get_properties().textures
+		self.old_driver["vsize"] = clicker:get_properties().visual_size
 		self.old_driver["eye_offset"] = clicker:get_eye_offset()
 		self.old_driver["hud"] = clicker:hud_get_flags()
-		clicker:get_inventory():set_stack("bike_hand", 1, clicker:get_inventory():get_stack("hand", 1))
+		clicker:get_inventory():set_stack("old_hand", 1, clicker:get_inventory():get_stack("hand", 1))
 		-- Change the hand
 		clicker:get_inventory():set_stack("hand", 1, "bike:hand")
 		local attach = clicker:get_attach()
@@ -159,7 +199,7 @@ function bike.on_rightclick(self, clicker)
 		end
 		self.driver = clicker
 		-- Set new properties and hide HUD
-		clicker:set_properties({textures = {"blank.png"}})
+		clicker:set_properties({visual_size = {x=0,y=0}})
 		clicker:set_attach(self.object, "body", {x = 0, y = 10, z = 5}, {x = 0, y = 0, z = 0})
 		clicker:set_eye_offset({x=0,y=-3,z=10},{x=0,y=0,z=5})
 		clicker:hud_set_flags({
@@ -272,8 +312,14 @@ end
 
 -- Run every tick
 function bike.on_step(self, dtime)
-	-- Has the player left?
+	-- Player checks
 	if self.driver then
+		-- Is the actual player somehow still visible?
+		if self.driver:get_properties().visual_size ~= {x=0,y=0} then
+			self.driver:set_properties({visual_size = {x=0,y=0}})
+		end
+
+		-- Has the player left?
 		if not attached[self.driver:get_player_name()] then
 			dismount_player(self, true)
 		end
@@ -413,23 +459,23 @@ function bike.on_step(self, dtime)
 	self.object:set_velocity(new_velo)
 end
 
+-- Check for stray bike hand
+minetest.register_on_joinplayer(function(player)
+	local inv = player:get_inventory()
+	if inv:get_stack("hand", 1):get_name() == "bike:hand" then
+		inv:set_stack("hand", 1, inv:get_stack("old_hand", 1))
+	end
+end)
+
 -- Player is leaving (doesn't matter if they are on a bike or not)
 minetest.register_on_leaveplayer(function(player)
 	attached[player:get_player_name()] = nil
 end)
 
--- Player is leaving (doesn't matter if they are on a bike or not)
-minetest.register_on_joinplayer(function(player)
-	local inv = player:get_inventory()
-	if inv:get_stack("hand", 1):get_name() == "bike:hand" then
-		inv:set_stack("hand", 1, inv:get_stack("bike_hand", 1))
-	end
-end)
-
 -- Dismount all players on server shutdown
 minetest.register_on_shutdown(function()
 	for _, e in pairs(minetest.luaentities) do
-		if (e.driver ~= nil) then				
+		if (e.driver ~= nil) then
 			dismount_player(e, true)
 		end
 	end
@@ -482,7 +528,7 @@ minetest.register_craftitem("bike:wheel", {
 
 minetest.register_craftitem("bike:handles", {
 	description = "Bike Handles",
-	inventory_image = "bike_handles.png",
+	inventory_image = "old_handles.png",
 })
 
 if minetest.get_modpath("technic") ~= nil then
