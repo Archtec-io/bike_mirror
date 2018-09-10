@@ -481,6 +481,11 @@ minetest.register_on_shutdown(function()
 	end
 end)
 
+-- Automatically dismount corpses
+minetest.register_on_dieplayer(function(player)
+	attached[player:get_player_name()] = nil
+end)
+
 -- Register the entity
 minetest.register_entity("bike:bike", bike)
 
