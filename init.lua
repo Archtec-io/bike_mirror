@@ -101,7 +101,7 @@ minetest.register_node("bike:hand", {
 
 --[[ Bike ]]--
 
--- Default textures (overidden when mounted or punched with dye)
+-- Default textures (overidden when mounted or colored)
 local function default_tex(metaltex, alpha)
 	return {
 		"metal_grey.png",
