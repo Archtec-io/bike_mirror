@@ -234,9 +234,11 @@ function bike.on_activate(self, staticdata, dtime_s)
 	self.object:set_armor_groups({immortal = 1})
 	if staticdata ~= "" then
 		local data = minetest.deserialize(staticdata)
-		self.v = data.v
-		self.color = data.color
-		self.alpha = data.alpha
+		if data ~= nil then
+			self.v = data.v
+			self.color = data.color
+			self.alpha = data.alpha
+		end
 	end
 	self.object:set_properties({textures=default_tex(self.color, self.alpha)})
 	self.last_v = self.v
