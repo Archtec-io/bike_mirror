@@ -35,7 +35,12 @@ local function get_player_skin(player)
 	elseif skin_mod == "wardrobe" and wardrobe.playerSkins and wardrobe.playerSkins[name] then
 		return wardrobe.playerSkins[name]..armor_tex
 	end
-	return player:get_properties().textures[1]..armor_tex
+	local skin = player:get_properties().textures[1]
+	-- If we just have 3d_armor enabled make sure we get the player skin properly
+	if minetest.global_exists("armor") then
+		skin = armor:get_player_skin(name)
+	end
+	return skin..armor_tex
 end
 
 -- Keep track of attached players (for leaveplayer)
