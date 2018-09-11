@@ -515,7 +515,8 @@ minetest.register_craftitem("bike:bike", {
 			return itemstack
 		end
 
-		bike = minetest.add_entity(pointed_thing.above, "bike:bike")
+		player_pos = placer:get_pos()
+		bike = minetest.add_entity({x=player_pos.x, y=player_pos.y+0.5, z=player_pos.z}, "bike:bike")
 		if bike then
 			if placer then
 				bike:set_yaw(placer:get_look_horizontal())
