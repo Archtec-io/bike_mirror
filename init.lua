@@ -515,7 +515,7 @@ minetest.register_craftitem("bike:bike", {
 			return itemstack
 		end
 
-		player_pos = placer:get_pos()
+		local player_pos = placer:get_pos()
 		bike = minetest.add_entity({x=player_pos.x, y=player_pos.y+0.5, z=player_pos.z}, "bike:bike")
 		if bike then
 			if placer then
