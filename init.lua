@@ -173,11 +173,12 @@ local function default_tex(metaltex, alpha)
 		"bike_metal_black.png",
 		"bike_metal_black.png",
 		"bike_blank.png",
-		"bike_tread.png",
+		"bike_blank.png",
+		"bike_spokes.png",
 		"bike_gear.png",
-		"bike_spokes.png",
 		"bike_tread.png",
 		"bike_spokes.png",
+		"bike_tread.png",
 	}
 end
 
@@ -261,11 +262,12 @@ function bike.on_rightclick(self, clicker)
 				"bike_metal_black.png",
 				"bike_metal_black.png",
 				get_player_skin(clicker).."^bike_helmet.png",
-				"bike_tread.png",
+				get_player_skin(clicker).."^bike_helmet.png",
+				"bike_spokes.png",
 				"bike_gear.png",
-				"bike_spokes.png",
 				"bike_tread.png",
 				"bike_spokes.png",
+				"bike_tread.png",
 			},
 		})
 		-- Save the player's properties that we need to change
@@ -353,11 +355,12 @@ function bike.on_punch(self, puncher)
 				"bike_metal_black.png",
 				"bike_metal_black.png",
 				"bike_blank.png",
-				"bike_tread.png",
+				"bike_blank.png",
+				"bike_spokes.png",
 				"bike_gear.png",
-				"bike_spokes.png",
 				"bike_tread.png",
 				"bike_spokes.png",
+				"bike_tread.png",
 			},
 		})
 		return
