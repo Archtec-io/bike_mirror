@@ -45,6 +45,7 @@ end
 
 -- Bike metal texture handling
 local function is_hex(color)
+	if color:len() ~= 7 then return nil end
 	return color:match("#%x%x%x%x%x%x")
 end
 
@@ -677,7 +678,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
 				if is_hex(hex) == nil then
 					hex = "#FFFFFF"
 				end
-				if alpha < 0 or alpha > 255 then
+				if alpha == nil or alpha < 0 or alpha > 255 then
 					alpha = 128
 				end
 				-- Save color data to painter (rgba sliders will adjust to hex/alpha too!)
