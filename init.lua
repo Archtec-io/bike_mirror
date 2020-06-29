@@ -145,7 +145,8 @@ local bike = {
 	last_y = 0,	  -- Last height
 	up = false,	  -- Are we going up?
 	timer = 0,
-	removed = false
+	removed = false,
+	__is_bike__ = true,
 }
 
 -- Dismont the player
@@ -538,7 +539,7 @@ end)
 -- Dismount all players on server shutdown
 minetest.register_on_shutdown(function()
 	for _, e in pairs(minetest.luaentities) do
-		if (e.driver ~= nil) then
+		if (e.__is_bike__ and e.driver ~= nil) then
 			dismount_player(e, true)
 		end
 	end
