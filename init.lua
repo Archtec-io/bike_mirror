@@ -87,6 +87,9 @@ local function get_player_skin(player)
 		armor_tex = filter("^"..armor.textures[name].armor, {"shields_shield", "3d_armor_boots", "3d_armor_helmet"})
 	end
 	-- Return the skin with armor (if applicable)
+	if exclusive_skins and exclusive_skins[name] then
+		return exclusive_skins[name].skin..armor_tex
+	end
 	if skin_mod == "skinsdb" then
 		return "[combine:64x32:0,0="..skins.get_player_skin(player)["_texture"]..armor_tex
 	elseif (skin_mod == "skins" or skin_mod == "simple_skins") and skins.skins[name] then
