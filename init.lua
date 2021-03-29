@@ -162,7 +162,8 @@ local function dismount_player(bike, exit)
 		bike.driver:set_detach()
 		-- Reset original player properties
 		bike.driver:set_properties({visual_size=bike.old_driver["vsize"]})
-		bike.driver:set_eye_offset(bike.old_driver["eye_offset"].offset_first, bike.old_driver["eye_offset"].offset_third)
+		bike.driver:set_eye_offset(bike.old_driver.eye_offset.offset_first,
+									bike.old_driver.eye_offset.offset_third)
 		bike.driver:hud_set_flags(bike.old_driver["hud"])
 		bike.driver:get_inventory():set_stack("hand", 1, bike.driver:get_inventory():get_stack("old_hand", 1))
 		-- Is the player leaving? If so, dont do this stuff or Minetest will have a fit
@@ -204,7 +205,11 @@ function bike.on_rightclick(self, clicker)
 		})
 		-- Save the player's properties that we need to change
 		self.old_driver["vsize"] = clicker:get_properties().visual_size
-		self.old_driver["eye_offset"] = clicker:get_eye_offset()
+		local offset_first, offset_third = clicker:get_eye_offset()
+		self.old_driver.eye_offset = {
+			offset_first = offset_first,
+			offset_third = offset_third
+		}
 		self.old_driver["hud"] = clicker:hud_get_flags()
 		clicker:get_inventory():set_stack("old_hand", 1, clicker:get_inventory():get_stack("hand", 1))
 		-- Change the hand
