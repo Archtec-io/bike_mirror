@@ -228,7 +228,7 @@ end
 
 -- Mounting
 function bike.on_rightclick(self, clicker)
-	if not clicker or not clicker:is_player() then
+	if not clicker or not clicker:is_player() or clicker:get_attach() ~= nil then
 		return
 	end
 	if not self.driver then
