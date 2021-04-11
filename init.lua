@@ -5,6 +5,17 @@ local skin_mod
 
 local skin_mods = {"skinsdb", "skins", "u_skins", "simple_skins", "wardrobe"}
 
+local setting_max_speed = tonumber(minetest.settings:get("bike_max_speed")) or 6.9
+local setting_acceleration = tonumber(minetest.settings:get("bike_acceleration")) or 3.16
+local setting_decceleration = tonumber(minetest.settings:get("bike_decceleration")) or 7.9
+local setting_friction = tonumber(minetest.settings:get("bike_friction")) or 0.79
+local setting_turn_speed = tonumber(minetest.settings:get("bike_turn_speed")) or 1.58
+local setting_friction_cone = tonumber(minetest.settings:get("bike_friction_cone")) or 0.4
+local agility_factor = 1/math.sqrt(setting_friction_cone)
+local setting_wheely_factor = tonumber(minetest.settings:get("bike_wheely_factor")) or 2.0
+local setting_water_friction = tonumber(minetest.settings:get("bike_water_friction")) or 13.8
+local setting_offroad_friction = tonumber(minetest.settings:get("bike_offroad_friction")) or 1.62
+
 for _, mod in pairs(skin_mods) do
 	local path = minetest.get_modpath(mod)
 	if path then
@@ -140,7 +151,7 @@ local bike = {
 	old_driver = {},
 	v = 0,		  -- Current velocity
 	last_v = 0,   -- Last velocity
-	max_v = 6.9,  -- Max velocity
+	max_v = setting_max_speed,  -- Max velocity
 	fast_v = 0,   -- Fast adder
 	f_speed = 30, -- Frame speed
 	last_y = 0,	  -- Last height
@@ -445,10 +456,10 @@ function bike.on_step(self, dtime)
 			dismount_player(self)
 		end
 
-		if self.v > 0.4 then
-			agility = 1/math.sqrt(self.v)
+		if self.v > setting_friction_cone then
+			agility = 1/math.sqrt(self.v)/agility_factor
 		else
-			agility = 1.58
+			agility = 1.0
 		end
 
 		-- Forward
@@ -463,36 +474,34 @@ function bike.on_step(self, dtime)
 					self.fast_v = self.fast_v - 0.05 * agility
 				end
 			end
-			self.v = self.v + 0.2 + (self.fast_v*0.1) * agility
+			self.v = self.v + dtime*setting_acceleration + (self.fast_v*0.1) * agility
 		-- Brakes
 		elseif ctrl.down then
-			self.v = self.v - 0.5 * agility
+			self.v = self.v - dtime*setting_decceleration * agility
 			if self.fast_v > 0 then
-				self.fast_v = self.fast_v - 0.05 * agility
+				self.fast_v = self.fast_v - dtime*setting_friction * agility
 			end
 		-- Nothin'
 		else
-			self.v = self.v - 0.05 * agility
+			self.v = self.v - dtime*setting_friction * agility
 			if self.fast_v > 0 then
-				self.fast_v = self.fast_v - 0.05 * agility
+				self.fast_v = self.fast_v - dtime*setting_friction * agility
 			end
 		end
 
 		-- Wheely will change turning speed
-		local turn_speed = 1
+		local turn_speed = setting_turn_speed
 
 		-- Are we doing a wheely?
 		if ctrl.jump then
-			turn_speed = 2
-		else
-			turn_speed = 1
+			turn_speed = setting_wheely_factor * setting_turn_speed
 		end
 
 		-- Turning
 		if ctrl.left then
-			self.object:set_yaw(yaw + (turn_speed + dtime) * 0.06 * agility)
+			self.object:set_yaw(yaw + turn_speed*dtime * agility)
 		elseif ctrl.right then
-			self.object:set_yaw(yaw - (turn_speed + dtime) * 0.06 * agility)
+			self.object:set_yaw(yaw - turn_speed*dtime * agility)
 		end
 	end
 	-- Movement
@@ -515,12 +524,12 @@ function bike.on_step(self, dtime)
 
 	local p = self.object:get_pos()
 	if is_water(p) then
-		self.v = self.v / 1.3
+		self.v = self.v / math.pow(setting_water_friction, dtime)
 	end
 
 	-- Can we ride good here?
 	if not is_bike_friendly({x=p.x, y=p.y + self.collisionbox[2] - 0.05, z=p.z}) then
-		self.v = self.v / 1.05
+		self.v = self.v / math.pow(setting_offroad_friction, dtime)
 	end
 
 	local new_velo
