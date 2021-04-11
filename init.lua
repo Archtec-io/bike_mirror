@@ -16,6 +16,49 @@ local setting_wheely_factor = tonumber(minetest.settings:get("bike_wheely_factor
 local setting_water_friction = tonumber(minetest.settings:get("bike_water_friction")) or 13.8
 local setting_offroad_friction = tonumber(minetest.settings:get("bike_offroad_friction")) or 1.62
 
+--[[ Crafts ]]--
+
+minetest.register_craftitem("bike:wheel", {
+	description = "Bike Wheel",
+	inventory_image = "bike_wheel.png",
+})
+
+minetest.register_craftitem("bike:handles", {
+	description = "Bike Handles",
+	inventory_image = "bike_handles.png",
+})
+
+-- Set item names according to installed mods
+local rubber = "group:wood"
+local iron = "default:steel_ingot"
+local red_dye = "dye:red"
+local green_dye = "dye:green"
+local blue_dye = "dye:blue"
+local container = "default:glass"
+
+if minetest.get_modpath("technic") ~= nil then
+	rubber = "technic:rubber"
+end
+
+if minetest.get_modpath("vessels") ~= nil then
+	container = "vessels:glass_bottle"
+end
+
+if minetest.get_modpath("mcl_core") ~= nil then
+	iron = "mcl_core:iron_ingot"
+	container = "mcl_core:glass"
+end
+
+if minetest.get_modpath("mcl_dye") ~= nil then
+	red_dye = "mcl_dye:red"
+	green_dye = "mcl_dye:green"
+	blue_dye = "mcl_dye:blue"
+end
+
+if minetest.get_modpath("mcl_potions") ~= nil then
+	container = "mcl_potions:glass_bottle"
+end
+
 for _, mod in pairs(skin_mods) do
 	local path = minetest.get_modpath(mod)
 	if path then
@@ -328,7 +371,7 @@ function bike.on_punch(self, puncher)
 					minetest.chat_send_player(puncher:get_player_name(), "Warning: Destroying the bike gives you only some resources back. If you are sure, hold sneak while destroying the bike.")
 					return
 				end
-				local leftover = inv:add_item("main", "default:steel_ingot 6")
+				local leftover = inv:add_item("main", iron .. " 6")
 				-- If no room in inventory add the iron to the world
 				if not leftover:is_empty() then
 					minetest.add_item(self.object:get_pos(), leftover)
@@ -731,32 +774,11 @@ minetest.register_tool("bike:painter", {
 	on_secondary_use = show_painter_form,
 })
 
---[[ Crafts ]]--
-
-minetest.register_craftitem("bike:wheel", {
-	description = "Bike Wheel",
-	inventory_image = "bike_wheel.png",
-})
-
-minetest.register_craftitem("bike:handles", {
-	description = "Bike Handles",
-	inventory_image = "bike_handles.png",
-})
-
--- To rubber, or not to rubber. That is the question.
-local rubber
-
-if minetest.get_modpath("technic") ~= nil then
-	rubber = "technic:rubber"
-else
-	rubber = "group:wood"
-end
-
 minetest.register_craft({
 	output = "bike:wheel 2",
 	recipe = {
 		{"", rubber, ""},
-		{rubber, "default:steel_ingot", rubber},
+		{rubber, iron, rubber},
 		{"", rubber, ""},
 	},
 })
@@ -764,7 +786,7 @@ minetest.register_craft({
 minetest.register_craft({
 	output = "bike:handles",
 	recipe = {
-		{"default:steel_ingot", "default:steel_ingot", "default:steel_ingot"},
+		{iron, iron, iron},
 		{rubber, "", rubber},
 	},
 })
@@ -773,25 +795,16 @@ minetest.register_craft({
 	output = "bike:bike",
 	recipe = {
 		{"bike:handles", "", rubber},
-		{"default:steel_ingot", "default:steel_ingot", "default:steel_ingot"},
+		{iron, iron, iron},
 		{"bike:wheel", "", "bike:wheel"},
 	},
 })
-
--- Because not everyone likes vessels
-local container
-
-if minetest.get_modpath("vessels") ~= nil then
-	container = "vessels:glass_bottle"
-else
-	container = "default:glass"
-end
 
 minetest.register_craft({
 	output = "bike:painter",
 	recipe = {
 		{"", container, ""},
-		{"default:steel_ingot", "dye:red", "dye:green"},
-		{"", rubber, "dye:blue"},
+		{iron, red_dye, green_dye},
+		{"", rubber, blue_dye},
 	},
 })
