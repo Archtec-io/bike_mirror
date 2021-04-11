@@ -48,7 +48,7 @@ local function get_player_skin(player)
 	end
 	local skin = player:get_properties().textures[1]
 	-- If we just have 3d_armor enabled make sure we get the player skin properly
-	if minetest.global_exists("armor") then
+	if minetest.global_exists("armor") and armor.get_player_skin then
 		skin = armor:get_player_skin(name)
 	end
 	return skin..armor_tex
