@@ -107,9 +107,6 @@ local function colormetal(color, alpha)
 	return "metal_base.png^[colorize:"..(color)..":"..tostring(alpha)
 end
 
--- Keep track of attached players (for leaveplayer)
-local attached = {}
-
 -- Terrain checkers
 local function is_water(pos)
 	local nn = minetest.get_node(pos).name
@@ -212,7 +209,6 @@ local function dismount_player(bike, exit)
 	bike.v = 0
 
 	if bike.driver then
-		attached[bike.driver:get_player_name()] = nil
 		bike.driver:set_detach()
 		-- Reset original player properties
 		bike.driver:set_properties({visual_size=bike.old_driver["vsize"]})
@@ -236,7 +232,6 @@ function bike.on_rightclick(self, clicker)
 		return
 	end
 	if not self.driver then
-		attached[clicker:get_player_name()] = true
 		-- Make integrated player appear
 		self.object:set_properties({
 			textures = {
@@ -444,7 +439,7 @@ function bike.on_step(self, dtime)
 		end
 
 		-- Has the player left?
-		if not attached[self.driver:get_player_name()] then
+		if self.driver:get_attach() == nil then
 			dismount_player(self, true)
 		end
 	end
@@ -589,11 +584,6 @@ minetest.register_on_joinplayer(function(player)
 	end
 end)
 
--- Player is leaving (doesn't matter if they are on a bike or not)
-minetest.register_on_leaveplayer(function(player)
-	attached[player:get_player_name()] = nil
-end)
-
 -- Dismount all players on server shutdown
 minetest.register_on_shutdown(function()
 	for _, e in pairs(minetest.luaentities) do
@@ -601,11 +591,6 @@ minetest.register_on_shutdown(function()
 			dismount_player(e, true)
 		end
 	end
-end)
-
--- Automatically dismount corpses
-minetest.register_on_dieplayer(function(player)
-	attached[player:get_player_name()] = nil
 end)
 
 -- Register the entity
