@@ -104,7 +104,7 @@ local function is_hex(color)
 end
 
 local function colormetal(color, alpha)
-	return "metal_base.png^[colorize:"..(color)..":"..tostring(alpha)
+	return "bike_metal_base.png^[colorize:"..(color)..":"..tostring(alpha)
 end
 
 -- Terrain checkers
@@ -156,21 +156,21 @@ minetest.register_node("bike:hand", {
 -- Default textures (overidden when mounted or colored)
 local function default_tex(metaltex, alpha)
 	return {
-		"metal_grey.png",
-		"gear.png",
+		"bike_metal_grey.png",
+		"bike_gear.png",
 		colormetal(metaltex, alpha),
-		"leather.png",
-		"chain.png",
-		"metal_grey.png",
-		"leather.png",
-		"metal_black.png",
-		"metal_black.png",
-		"blank.png",
-		"tread.png",
-		"gear.png",
-		"spokes.png",
-		"tread.png",
-		"spokes.png",
+		"bike_leather.png",
+		"bike_chain.png",
+		"bike_metal_grey.png",
+		"bike_leather.png",
+		"bike_metal_black.png",
+		"bike_metal_black.png",
+		"bike_blank.png",
+		"bike_tread.png",
+		"bike_gear.png",
+		"bike_spokes.png",
+		"bike_tread.png",
+		"bike_spokes.png",
 	}
 end
 
@@ -235,21 +235,21 @@ function bike.on_rightclick(self, clicker)
 		-- Make integrated player appear
 		self.object:set_properties({
 			textures = {
-				"metal_grey.png",
-				"gear.png",
+				"bike_metal_grey.png",
+				"bike_gear.png",
 				colormetal(self.color, self.alpha),
-				"leather.png",
-				"chain.png",
-				"metal_grey.png",
-				"leather.png",
-				"metal_black.png",
-				"metal_black.png",
-				get_player_skin(clicker).."^helmet.png",
-				"tread.png",
-				"gear.png",
-				"spokes.png",
-				"tread.png",
-				"spokes.png",
+				"bike_leather.png",
+				"bike_chain.png",
+				"bike_metal_grey.png",
+				"bike_leather.png",
+				"bike_metal_black.png",
+				"bike_metal_black.png",
+				get_player_skin(clicker).."^bike_helmet.png",
+				"bike_tread.png",
+				"bike_gear.png",
+				"bike_spokes.png",
+				"bike_tread.png",
+				"bike_spokes.png",
 			},
 		})
 		-- Save the player's properties that we need to change
@@ -321,21 +321,21 @@ function bike.on_punch(self, puncher)
 		self.alpha = meta:get_string("alpha")
 		self.object:set_properties({
 			textures = {
-				"metal_grey.png",
-				"gear.png",
+				"bike_metal_grey.png",
+				"bike_gear.png",
 				colormetal(self.color, self.alpha),
-				"leather.png",
-				"chain.png",
-				"metal_grey.png",
-				"leather.png",
-				"metal_black.png",
-				"metal_black.png",
-				"blank.png",
-				"tread.png",
-				"gear.png",
-				"spokes.png",
-				"tread.png",
-				"spokes.png",
+				"bike_leather.png",
+				"bike_chain.png",
+				"bike_metal_grey.png",
+				"bike_leather.png",
+				"bike_metal_black.png",
+				"bike_metal_black.png",
+				"bike_blank.png",
+				"bike_tread.png",
+				"bike_gear.png",
+				"bike_spokes.png",
+				"bike_tread.png",
+				"bike_spokes.png",
 			},
 		})
 		return
@@ -705,7 +705,7 @@ local function show_painter_form(itemstack, player)
 		"label[5.1,3.7;A: "..tostring(rgba.a).."]"..
 		-- Preview
 		"label[1,0;Preview:]"..
-		"image[2,0;2,2;metal_base.png^[colorize:"..color..":"..tostring(rgba.a).."]"
+		"image[2,0;2,2;bike_metal_base.png^[colorize:"..color..":"..tostring(rgba.a).."]"
 	)
 end
 
