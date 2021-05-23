@@ -15,6 +15,7 @@ local agility_factor = 1/math.sqrt(setting_friction_cone)
 local setting_wheely_factor = tonumber(minetest.settings:get("bike_wheely_factor")) or 2.0
 local setting_water_friction = tonumber(minetest.settings:get("bike_water_friction")) or 13.8
 local setting_offroad_friction = tonumber(minetest.settings:get("bike_offroad_friction")) or 1.62
+local setting_turn_look = minetest.settings:get_bool("mount_turn_player_look", false) -- general setting for any mount
 
 --[[ Crafts ]]--
 
@@ -405,13 +406,29 @@ local function bike_anim(self)
 				return
 			end
 		end
+
 		-- Left or right tilt, but only if we arent doing a wheely
-		if ctrl.left then
+		local t_left = false
+		local t_right = false
+
+		if not setting_turn_look then
+			t_left = ctrl.left
+			t_right = ctrl.right
+		else
+			local turning = math.floor(self.driver:get_look_horizontal() * 100)
+				- math.floor(self.object:get_yaw() * 100)
+
+			-- use threshold of 1 to determine if animation should be updated
+			t_left = turning > 1
+			t_right = turning < -1
+		end
+
+		if t_left then
 			if self.object:get_animation().y ~= 58 then
 				self.object:set_animation({x=39,y=58}, self.f_speed + self.fast_v, 0, true)
 			end
 			return
-		elseif ctrl.right then
+		elseif t_right then
 			if self.object:get_animation().y ~= 38 then
 				self.object:set_animation({x=19,y=38}, self.f_speed + self.fast_v, 0, true)
 			end
@@ -540,10 +557,14 @@ function bike.on_step(self, dtime)
 		end
 
 		-- Turning
-		if ctrl.left then
-			self.object:set_yaw(yaw + turn_speed*dtime * agility)
-		elseif ctrl.right then
-			self.object:set_yaw(yaw - turn_speed*dtime * agility)
+		if not setting_turn_look then
+			if ctrl.left then
+				self.object:set_yaw(yaw + turn_speed*dtime * agility)
+			elseif ctrl.right then
+				self.object:set_yaw(yaw - turn_speed*dtime * agility)
+			end
+		else
+			self.object:set_yaw(self.driver:get_look_horizontal())
 		end
 	end
 	-- Movement
