@@ -15,6 +15,7 @@ local setting_friction_cone = tonumber(minetest.settings:get("bike_friction_cone
 local agility_factor = 1/math.sqrt(setting_friction_cone)
 local setting_wheely_factor = tonumber(minetest.settings:get("bike_wheely_factor")) or 2.0
 local setting_stepheight = tonumber(minetest.settings:get("bike_stepheight")) or 0.6
+local setting_wheely_stepheight = tonumber(minetest.settings:get("bike_wheely_stepheight")) or 0.6
 local setting_water_friction = tonumber(minetest.settings:get("bike_water_friction")) or 13.8
 local setting_offroad_friction = tonumber(minetest.settings:get("bike_offroad_friction")) or 1.62
 
@@ -577,6 +578,14 @@ function bike.on_step(self, dtime)
 		-- Are we doing a wheely?
 		if ctrl.jump then
 			turn_speed = setting_wheely_factor * setting_turn_speed
+
+			if self.stepheight ~= setting_wheely_stepheight then
+				self.object:set_properties({stepheight=setting_wheely_stepheight})
+				self.stepheight = setting_wheely_stepheight
+			end
+		elseif self.stepheight ~= setting_stepheight then
+			self.object:set_properties({stepheight=setting_stepheight})
+			self.stepheight = setting_stepheight
 		end
 
 		-- Turning
