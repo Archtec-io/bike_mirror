@@ -486,6 +486,7 @@ function bike.on_step(self, dtime)
 		-- Has the player left?
 		if self.driver:get_attach() == nil then
 			dismount_player(self, true)
+			return
 		end
 	end
 
@@ -497,6 +498,7 @@ function bike.on_step(self, dtime)
 			-- If so, dismount
 			if self.driver then
 				dismount_player(self)
+				return
 			end
 		end
 	end
@@ -537,6 +539,7 @@ function bike.on_step(self, dtime)
 		-- Sneak dismount
 		if ctrl.sneak then
 			dismount_player(self)
+			return
 		end
 
 		if self.v > setting_friction_cone then
