@@ -215,7 +215,10 @@ local function dismount_player(bike, exit)
 		bike.driver:set_eye_offset(bike.old_driver.eye_offset.offset_first,
 									bike.old_driver.eye_offset.offset_third)
 		bike.driver:hud_set_flags(bike.old_driver["hud"])
-		bike.driver:get_inventory():set_stack("hand", 1, bike.driver:get_inventory():get_stack("old_hand", 1))
+		local pinv = bike.driver:get_inventory()
+		if pinv then
+			pinv:set_stack("hand", 1, pinv:get_stack("old_hand", 1))
+		end
 		-- Is the player leaving? If so, dont do this stuff or Minetest will have a fit
 		if not exit then
 			local pos = bike.driver:get_pos()
@@ -434,7 +437,8 @@ function bike.on_step(self, dtime)
 	-- Player checks
 	if self.driver then
 		-- Is the actual player somehow still visible?
-		if self.driver:get_properties().visual_size ~= {x=0,y=0} then
+		local p_prop = self.driver:get_properties()
+		if p_prop and p_prop.visual_size ~= {x=0,y=0} then
 			self.driver:set_properties({visual_size = {x=0,y=0}})
 		end
 
