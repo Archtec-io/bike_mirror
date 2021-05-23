@@ -495,11 +495,6 @@ function bike.on_step(self, dtime)
 		-- And is Minetest not being dumb
 		if not self.up then
 			self.v = 0
-			-- If so, dismount
-			if self.driver then
-				dismount_player(self)
-				return
-			end
 		end
 	end
 
