@@ -494,6 +494,7 @@ function bike.on_step(self, dtime)
 	if math.abs(self.last_v - self.v) > 3 then
 		-- And is Minetest not being dumb
 		if not self.up then
+			minetest.log("info", "[bike] forcing stop")
 			self.v = 0
 		end
 	end
