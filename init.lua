@@ -5,6 +5,7 @@ local skin_mod
 
 local skin_mods = {"skinsdb", "skins", "u_skins", "simple_skins", "wardrobe"}
 
+-- local settings
 local setting_max_speed = tonumber(minetest.settings:get("bike_max_speed")) or 6.9
 local setting_acceleration = tonumber(minetest.settings:get("bike_acceleration")) or 3.16
 local setting_decceleration = tonumber(minetest.settings:get("bike_decceleration")) or 7.9
@@ -13,8 +14,14 @@ local setting_turn_speed = tonumber(minetest.settings:get("bike_turn_speed")) or
 local setting_friction_cone = tonumber(minetest.settings:get("bike_friction_cone")) or 0.4
 local agility_factor = 1/math.sqrt(setting_friction_cone)
 local setting_wheely_factor = tonumber(minetest.settings:get("bike_wheely_factor")) or 2.0
+local setting_stepheight = tonumber(minetest.settings:get("bike_stepheight")) or 0.6
+local setting_wheely_stepheight = tonumber(minetest.settings:get("bike_wheely_stepheight")) or 0.6
 local setting_water_friction = tonumber(minetest.settings:get("bike_water_friction")) or 13.8
 local setting_offroad_friction = tonumber(minetest.settings:get("bike_offroad_friction")) or 1.62
+
+-- general settings
+local setting_turn_look = minetest.settings:get_bool("mount_turn_player_look", false)
+local setting_ownable = minetest.settings:get_bool("mount_ownable", false)
 
 --[[ Crafts ]]--
 
@@ -184,7 +191,7 @@ local bike = {
 	visual = "mesh",
 	mesh = "bike.b3d",
 	textures = default_tex("#FFFFFF", 150),
-	stepheight = 0.6,
+	stepheight = setting_stepheight,
 	driver = nil,
 	color = "#FFFFFF",
 	alpha = 150,
@@ -215,7 +222,10 @@ local function dismount_player(bike, exit)
 		bike.driver:set_eye_offset(bike.old_driver.eye_offset.offset_first,
 									bike.old_driver.eye_offset.offset_third)
 		bike.driver:hud_set_flags(bike.old_driver["hud"])
-		bike.driver:get_inventory():set_stack("hand", 1, bike.driver:get_inventory():get_stack("old_hand", 1))
+		local pinv = bike.driver:get_inventory()
+		if pinv then
+			pinv:set_stack("hand", 1, pinv:get_stack("old_hand", 1))
+		end
 		-- Is the player leaving? If so, dont do this stuff or Minetest will have a fit
 		if not exit then
 			local pos = bike.driver:get_pos()
@@ -232,6 +242,12 @@ function bike.on_rightclick(self, clicker)
 		return
 	end
 	if not self.driver then
+		local pname = clicker:get_player_name()
+		if setting_ownable and self.owner and pname ~= self.owner then
+			minetest.chat_send_player(pname, "You cannot ride " .. self.owner .. "'s bike.")
+			return
+		end
+
 		-- Make integrated player appear
 		self.object:set_properties({
 			textures = {
@@ -294,6 +310,7 @@ function bike.on_activate(self, staticdata, dtime_s)
 			self.v = data.v
 			self.color = data.color
 			self.alpha = data.alpha
+			self.owner = data.owner
 		end
 	end
 	self.object:set_properties({textures=default_tex(self.color, self.alpha)})
@@ -302,7 +319,12 @@ end
 
 -- Save velocity and color data for reload
 function bike.get_staticdata(self)
-	local data = {v=self.v,color=self.color,alpha=self.alpha}
+	local data = {
+		v = self.v,
+		color = self.color,
+		alpha = self.alpha,
+		owner = self.owner,
+	}
 	return minetest.serialize(data)
 end
 
@@ -345,6 +367,12 @@ function bike.on_punch(self, puncher)
 	end
 	-- Make sure no one is riding
 	if not self.driver then
+		local pname = puncher:get_player_name()
+		if setting_ownable and self.owner and pname ~= self.owner then
+			minetest.chat_send_player(pname, "You cannot take " .. self.owner .. "'s bike.")
+			return
+		end
+
 		local inv = puncher:get_inventory()
 		-- We can only carry one bike
 		if not inv:contains_item("main", "bike:bike") then
@@ -360,10 +388,10 @@ function bike.on_punch(self, puncher)
 			end
 		else
 			-- Turn it into raw materials
-			if not (creative and creative.is_enabled_for(puncher:get_player_name())) then
+			if not (creative and creative.is_enabled_for(pname)) then
 				local ctrl = puncher:get_player_control()
 				if not ctrl.sneak then
-					minetest.chat_send_player(puncher:get_player_name(), "Warning: Destroying the bike gives you only some resources back. If you are sure, hold sneak while destroying the bike.")
+					minetest.chat_send_player(pname, "Warning: Destroying the bike gives you only some resources back. If you are sure, hold sneak while destroying the bike.")
 					return
 				end
 				local leftover = inv:add_item("main", iron .. " 6")
@@ -402,13 +430,29 @@ local function bike_anim(self)
 				return
 			end
 		end
+
 		-- Left or right tilt, but only if we arent doing a wheely
-		if ctrl.left then
+		local t_left = false
+		local t_right = false
+
+		if not setting_turn_look then
+			t_left = ctrl.left
+			t_right = ctrl.right
+		else
+			local turning = math.floor(self.driver:get_look_horizontal() * 100)
+				- math.floor(self.object:get_yaw() * 100)
+
+			-- use threshold of 1 to determine if animation should be updated
+			t_left = turning > 1
+			t_right = turning < -1
+		end
+
+		if t_left then
 			if self.object:get_animation().y ~= 58 then
 				self.object:set_animation({x=39,y=58}, self.f_speed + self.fast_v, 0, true)
 			end
 			return
-		elseif ctrl.right then
+		elseif t_right then
 			if self.object:get_animation().y ~= 38 then
 				self.object:set_animation({x=19,y=38}, self.f_speed + self.fast_v, 0, true)
 			end
@@ -434,13 +478,15 @@ function bike.on_step(self, dtime)
 	-- Player checks
 	if self.driver then
 		-- Is the actual player somehow still visible?
-		if self.driver:get_properties().visual_size ~= {x=0,y=0} then
+		local p_prop = self.driver:get_properties()
+		if p_prop and p_prop.visual_size ~= {x=0,y=0} then
 			self.driver:set_properties({visual_size = {x=0,y=0}})
 		end
 
 		-- Has the player left?
 		if self.driver:get_attach() == nil then
 			dismount_player(self, true)
+			return
 		end
 	end
 
@@ -448,11 +494,8 @@ function bike.on_step(self, dtime)
 	if math.abs(self.last_v - self.v) > 3 then
 		-- And is Minetest not being dumb
 		if not self.up then
+			minetest.log("info", "[bike] forcing stop")
 			self.v = 0
-			-- If so, dismount
-			if self.driver then
-				dismount_player(self)
-			end
 		end
 	end
 
@@ -492,6 +535,7 @@ function bike.on_step(self, dtime)
 		-- Sneak dismount
 		if ctrl.sneak then
 			dismount_player(self)
+			return
 		end
 
 		if self.v > setting_friction_cone then
@@ -533,13 +577,25 @@ function bike.on_step(self, dtime)
 		-- Are we doing a wheely?
 		if ctrl.jump then
 			turn_speed = setting_wheely_factor * setting_turn_speed
+
+			if self.stepheight ~= setting_wheely_stepheight then
+				self.object:set_properties({stepheight=setting_wheely_stepheight})
+				self.stepheight = setting_wheely_stepheight
+			end
+		elseif self.stepheight ~= setting_stepheight then
+			self.object:set_properties({stepheight=setting_stepheight})
+			self.stepheight = setting_stepheight
 		end
 
 		-- Turning
-		if ctrl.left then
-			self.object:set_yaw(yaw + turn_speed*dtime * agility)
-		elseif ctrl.right then
-			self.object:set_yaw(yaw - turn_speed*dtime * agility)
+		if not setting_turn_look then
+			if ctrl.left then
+				self.object:set_yaw(yaw + turn_speed*dtime * agility)
+			elseif ctrl.right then
+				self.object:set_yaw(yaw - turn_speed*dtime * agility)
+			end
+		else
+			self.object:set_yaw(self.driver:get_look_horizontal())
 		end
 	end
 	-- Movement
@@ -618,20 +674,25 @@ minetest.register_craftitem("bike:bike", {
 			return itemstack
 		end
 
-		-- Place bike with saved color
 		local meta = itemstack:get_meta()
-		local color = meta:get_string("color")
-		local alpha = tonumber(meta:get_string("alpha"))
+		local sdata = {
+			v = 0,
+			-- Place bike with saved color
+			color = meta:get_string("color"),
+			alpha = tonumber(meta:get_string("alpha")),
+			-- Store owner
+			owner = placer:get_player_name(),
+		}
 
 		-- If it's a new bike, give it default colors
-		if alpha == nil then
-			color, alpha = "#FFFFFF", 150
+		if sdata.alpha == nil then
+			sdata.color, sdata.alpha = "#FFFFFF", 150
 		end
 
 		local bike_pos = placer:get_pos()
 		bike_pos.y = bike_pos.y + 0.5
-		-- Use the saved color data and place the bike
-		bike = minetest.add_entity(bike_pos, "bike:bike", minetest.serialize({v=0,color=color,alpha=alpha}))
+		-- Use the saved attributes data and place the bike
+		bike = minetest.add_entity(bike_pos, "bike:bike", minetest.serialize(sdata))
 
 		-- Point it the right direction
 		if bike then
