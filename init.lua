@@ -1,3 +1,5 @@
+local S = minetest.get_translator(minetest.get_current_modname())
+
 --[[ Helpers ]]--
 
 -- Skin mod detection
@@ -26,12 +28,12 @@ local setting_ownable = minetest.settings:get_bool("mount_ownable", false)
 --[[ Crafts ]]--
 
 minetest.register_craftitem("bike:wheel", {
-	description = "Bike Wheel",
+	description = S("Bike Wheel"),
 	inventory_image = "bike_wheel.png",
 })
 
 minetest.register_craftitem("bike:handles", {
-	description = "Bike Handles",
+	description = S("Bike Handles"),
 	inventory_image = "bike_handles.png",
 })
 
@@ -54,6 +56,10 @@ end
 if minetest.get_modpath("mcl_core") ~= nil then
 	iron = "mcl_core:iron_ingot"
 	container = "mcl_core:glass"
+end
+
+if minetest.get_modpath("mcl_rubber") ~= nil then
+	rubber = "mcl_rubber:rubber"
 end
 
 if minetest.get_modpath("mcl_dye") ~= nil then
@@ -225,6 +231,10 @@ local function dismount_player(bike, exit)
 		local pinv = bike.driver:get_inventory()
 		if pinv then
 			pinv:set_stack("hand", 1, pinv:get_stack("old_hand", 1))
+			if minetest.global_exists("mcl_skins") then
+               local node_id = mcl_skins.get_node_id_by_player(bike.driver)
+			   pinv:set_stack("hand", 1, "mcl_meshhand:" .. node_id)
+            end
 		end
 		-- Is the player leaving? If so, dont do this stuff or Minetest will have a fit
 		if not exit then
@@ -646,6 +656,10 @@ minetest.register_on_joinplayer(function(player)
 	local inv = player:get_inventory()
 	if inv:get_stack("hand", 1):get_name() == "bike:hand" then
 		inv:set_stack("hand", 1, inv:get_stack("old_hand", 1))
+		if minetest.global_exists("mcl_skins") then
+               local node_id = mcl_skins.get_node_id_by_player(player)
+                inv:set_stack("hand", 1, "mcl_meshhand:" .. node_id)
+        end
 	end
 end)
 
@@ -663,7 +677,7 @@ minetest.register_entity("bike:bike", bike)
 
 -- Bike craftitem
 minetest.register_craftitem("bike:bike", {
-	description = "Bike",
+	description = S("Bike"),
 	inventory_image = "bike_inventory.png",
 	wield_scale = {x = 3, y = 3, z = 2},
 	groups = {flammable = 2},
@@ -822,7 +836,7 @@ end)
 
 -- Make the actual thingy
 minetest.register_tool("bike:painter", {
-	description = "Bike Painter",
+	description = S("Bike Painter"),
 	inventory_image = "bike_painter.png",
 	wield_scale = {x = 2, y = 2, z = 1},
 	on_place = show_painter_form,
