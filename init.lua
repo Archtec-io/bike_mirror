@@ -232,9 +232,9 @@ local function dismount_player(bike, exit)
 		if pinv then
 			pinv:set_stack("hand", 1, pinv:get_stack("old_hand", 1))
 			if minetest.global_exists("mcl_skins") then
-               local node_id = mcl_skins.get_node_id_by_player(bike.driver)
-			   pinv:set_stack("hand", 1, "mcl_meshhand:" .. node_id)
-            end
+				local node_id = mcl_skins.get_node_id_by_player(bike.driver)
+				pinv:set_stack("hand", 1, "mcl_meshhand:" .. node_id)
+			end
 		end
 		-- Is the player leaving? If so, dont do this stuff or Minetest will have a fit
 		if not exit then
@@ -657,9 +657,9 @@ minetest.register_on_joinplayer(function(player)
 	if inv:get_stack("hand", 1):get_name() == "bike:hand" then
 		inv:set_stack("hand", 1, inv:get_stack("old_hand", 1))
 		if minetest.global_exists("mcl_skins") then
-               local node_id = mcl_skins.get_node_id_by_player(player)
-                inv:set_stack("hand", 1, "mcl_meshhand:" .. node_id)
-        end
+			local node_id = mcl_skins.get_node_id_by_player(player)
+			inv:set_stack("hand", 1, "mcl_meshhand:" .. node_id)
+		end
 	end
 end)
 
