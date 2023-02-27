@@ -94,7 +94,7 @@ local function get_player_skin(player)
 	end
 	-- Return the skin with armor (if applicable)
 	if skin_mod == "skinsdb" then
-		return "[combine:64x32:0,0="..skins.get_player_skin(player)["_texture"]..armor_tex
+		return "[combine:64x32:0,0="..skins.get_player_skin(player):get_texture()..armor_tex
 	elseif (skin_mod == "skins" or skin_mod == "simple_skins") and skins.skins[name] then
 		return skins.skins[name]..".png"..armor_tex
 	elseif skin_mod == "u_skins" and u_skins.u_skins[name] then
